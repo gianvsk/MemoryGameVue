@@ -1,20 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import Icon from '../../atoms/Icon/Icon.vue';
 
+type HeaderWrapperProps = {
+    stars: boolean[],
+    time?: string,
+    moves: number
+}
 
-const { stars, time, moves } = defineProps({
-    stars: Number,
-    time: String,
-    moves: Number
-})
-
-const actualStars = [...Array(stars).keys()]
+const { stars, time, moves } = defineProps<HeaderWrapperProps>()
 
 const actualTime = '00:00'
-
-const actualMoves = 0
-
-console.log(actualStars)
 
 </script>
 
@@ -23,15 +18,15 @@ console.log(actualStars)
         <h1 class='text-32 my-21.440 text-black'>Matching Game</h1>
         <div class='flex w-345 justify-between items-center'>
             <div class='flex gap-0.5'>
-                <ul class='flex' v-for="star in actualStars">
+                <ul class='flex' v-for="star in stars">
                     <li>
-                        <Icon icon="/images/star-empty.png" />
+                        <Icon :icon="star ? '/images/star.png' : '/images/star-full.png'" :sizeSmall="true" />
                     </li>
                 </ul>
             </div>
             <h5 class='text-black'>{{ actualTime }}</h5>
-            <h5 class='text-black'>{{ actualMoves.toString() + ' Moves' }}</h5>
-            <Icon icon="/images/repeat.png" />
+            <h5 class='text-black'>{{ moves.toString() + ' Moves' }}</h5>
+            <Icon icon="/images/repeat.png" :sizeSmall="true"/>
         </div>
     </div>
 </template>

@@ -1,20 +1,28 @@
-<script setup>
-import CardDeck from '../../molecules/CardDeck/CardDeck.vue';
+<script setup lang="ts">
+import Card, { CardType } from '../../molecules/Card/Card.vue';
+import { ref, reactive, computed } from 'vue'
 
-const cards = [...Array(16).keys()]
+const { cards } = defineProps<{
+    cards: CardType[]
+}>()
 
-const assignIcon = () => {}
+const emitter = defineEmits<{
+    sendValueToApp: [value: number]
+}>()
+
+const sendValueToApp = (value: number) => {
+    emitter('sendValueToApp', value)
+}
 
 </script>
 
 <template>
-    <div class='board-custom flex flex-wrap justify-between items-center w-660 min-h-680 p-8 mb-12 rounded-10'>
-        <ul v-for="(card,index) in cards">
-            <li>
-                <CardDeck :key="index" :card-id='index' :card-check="true" :right-card="false"/>
-            </li>
-        </ul>
-    </div>
+    <ul class='board-custom flex flex-wrap justify-between items-center w-660 min-h-680 p-8 mb-12 rounded-10'>
+        <li v-for="card in cards">
+            <Card :card-id='card.cardId' :card-icon="card.cardIcon" :turn-card="card.turnCard" :verified="card.verified"
+                @send-value="sendValueToApp" />
+        </li>
+    </ul>
 </template>
 
 <style scoped>
