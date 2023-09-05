@@ -17,8 +17,8 @@ const sendValueToApp = (value: number) => {
 </script>
 
 <template>
-    <ul class='board-custom flex flex-wrap justify-between items-center w-660 min-h-680 p-8 mb-12 rounded-10'>
-        <li v-for="card in cards">
+    <ul class='board-custom grid grid-cols-4 grid-rows-4 m-auto gap-4 p-2 rounded-10 h-96 xs:p-6 xs:gap-6 sm:min-h-680 sm:w-full sm:gap-6 xs:h-480 sm:p-8 sm:mb-12' >
+        <li v-for="card in cards" class="sm:w-auto sm:auto md:w-125 md:h-125">
             <Card :card-id='card.cardId' :card-icon="card.cardIcon" :turn-card="card.turnCard" :verified="card.verified"
                 @send-value="sendValueToApp" />
         </li>

@@ -21,16 +21,55 @@ const cardIds = ref([...Array(16).keys()])
 
 const cards = ref<CardType[]>([])
 const idToCheck = ref<number[]>([])
+
 const moves = ref<number>(0)
-const buttonNotClickable = ref<boolean>(false)
 const stars = ref<boolean[]>([false, false, false])
 const countStars = ref<number>(0)
+const seconds = ref<number>(0)
+const minutes = ref<number>(0)
 
+const gameCompleted = ref<boolean>(false)
+const buttonNotClickable = ref<boolean>(false)
 provide('isClickable', buttonNotClickable)
 
-const createCards = () => {
+const createInterval = () => {
+  return setInterval(() => {
+    if (!gameCompleted.value) {
+      seconds.value < 59 ? seconds.value = seconds.value + 1 : (seconds.value = 0, minutes.value = minutes.value + 1),
+        printTime
+      } else clearInterval(interval.value)
+    }, 1000)
+}
+
+const interval = ref(createInterval())
+
+const startGame = () => {
+  cardIds.value = [...Array(16).keys()]
   icons.map(el => makeCardsSameIcon(el))
   cards.value.sort((a: CardType, b: CardType) => a.cardId - b.cardId)  // sort the array by cardId
+}
+
+const restartGame = () => {
+  clearInterval(interval.value)
+  console.log('interval', interval.value)
+  cards.value = []
+  idToCheck.value = []
+  gameCompleted.value = false
+  stars.value = [false, false, false]
+  countStars.value = 0
+  moves.value = 0
+  seconds.value = 0
+  minutes.value = 0
+  buttonNotClickable.value = false
+  startGame()
+  interval.value = createInterval()
+/*   const restartGameTime = setInterval(() => {
+    if (!gameCompleted.value) {
+      seconds.value < 59 ? seconds.value = seconds.value + 1 : (seconds.value = 0, minutes.value = minutes.value + 1),
+      printTime
+    }
+    else clearInterval(restartGameTime)
+  }, 1000) */
 }
 
 const makeCardsSameIcon = (el) => {  // creates 2 cards with same icon
@@ -46,44 +85,49 @@ const makeCardsSameIcon = (el) => {  // creates 2 cards with same icon
 }
 
 const coverCardsNotCompatible = (id1: number, id2: number) => {
-  buttonNotClickable.value = true
   stars.value = [false, false, false]
   countStars.value = 0
-  setTimeout(() => {
-    cards.value[id1] = { ...cards.value[id1], turnCard: false }
-    cards.value[id2] = { ...cards.value[id2], turnCard: false }
-    buttonNotClickable.value = false
-  }, 1000)
+  cards.value[id1] = { ...cards.value[id1], turnCard: false }
+  cards.value[id2] = { ...cards.value[id2], turnCard: false }
+  moves.value++
 }
 
 const verifyCard = (id: number) => {
-  cards.value[id] = {...cards.value[id], verified: true}
+  cards.value[id] = { ...cards.value[id], verified: true }
+}
+
+const isCompleted = () => {
+  cards.value.filter(el => el.verified === true).length === cards.value.length ? gameCompleted.value = true : false
 }
 
 const compareCardValues = (id: number) => {
-  idToCheck.value.push(id)
+  !idToCheck.value.find(el => el === id) ? idToCheck.value.push(id) : id
 
   if (idToCheck.value.length === 2) {
+    buttonNotClickable.value = true
     const card1Id = idToCheck.value[0]
     const card2Id = idToCheck.value[1]
-    console.log('card1', card1Id, ' - card2 ', card2Id)
-    if (cards.value[card1Id].cardIcon === cards.value[card2Id].cardIcon) {
-      buttonNotClickable.value = true
 
+    if (cards.value[card1Id].cardIcon === cards.value[card2Id].cardIcon && cards.value[card1Id].cardId !== cards.value[card2Id].cardId) {
       verifyCard(card1Id)
       verifyCard(card2Id)
 
       stars.value[countStars.value] = true
-      countStars.value++
+      countStars.value < 2 ? countStars.value++ : countStars.value
       moves.value++
+      isCompleted()
       setTimeout(() => {
         buttonNotClickable.value = false
       }, 1000)
     }
+
     else {
-      coverCardsNotCompatible(card1Id, card2Id)
-      moves.value++
+      setTimeout(() => {
+        coverCardsNotCompatible(card1Id, card2Id)
+        buttonNotClickable.value = false
+      }, 1000)
     }
+
     idToCheck.value = []
   }
 }
@@ -93,18 +137,34 @@ const checkCardValues = (id: number) => {
   // cards.value.map(el => el.turn = true) è errato
   cards.value = cards.value.map(el => { return el.cardId === id ? { ...el, turnCard: true } : el })
   compareCardValues(id)
-
 }
 
-createCards()
+const printTime = () => {
+  if (minutes.value < 10 && seconds.value < 10) return '0' + minutes.value.toString() + ':' + '0' + seconds.value.toString()
+  else if (minutes.value < 10 && seconds.value >= 10) return '0' + minutes.value.toString() + ':' + seconds.value.toString()
+  else if (minutes.value >= 10 && seconds.value < 10) return minutes.value.toString() + ':' + '0' + seconds.value.toString()
+  else return minutes.value.toString() + ':' + seconds.value.toString()
+}
+
+startGame()
 
 </script>
 
 <template>
-  <div class="container-custom w-screen h-full flex flex-col items-center">
-    <HeaderWrapper :stars="stars" :moves="moves"/>
-    <CardWrapper :cards="cards" @send-value-to-app="checkCardValues" />
-    <button @click="makeCardsSameIcon" />
+  <div class="container-custom w-screen h-screen flex flex-col items-center justify-start p-2 xs:p-8 sm:p-8 md:p-0 md:justify-start">
+    <div v-if="!gameCompleted" class="w-full sm:w-365 md:w-660">
+      <HeaderWrapper :stars="stars" :moves="moves" :time="printTime()" @send-reset="restartGame" />
+      <CardWrapper :cards="cards" @send-value-to-app="checkCardValues" />
+    </div>
+    <div v-if="gameCompleted" class="flex flex-col items-center justify-start">
+      <img src="/images/check.png" />
+      <h1 class="my-6 text-black text-5xl">You are a Winner!</h1>
+      <p class=" my-4 text-black text-3xl">
+        You won in {{ minutes.toString() }} minutes, {{ seconds.toString() }} seconds, using {{ moves.toString() }}, for
+        {{ countStars.toString() }} stars
+      </p>
+      <button class="p-10-custom bg-light-green text-black" @click="restartGame">Play another game!</button>
+    </div>
   </div>
 </template>
 

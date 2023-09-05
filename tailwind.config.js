@@ -5,6 +5,11 @@ export default {
     "./src/**/*.{vue,js,ts,jsx,tsx}"
   ],
   theme: {
+    screens: {
+      'xs': '30rem',
+      'sm': '640px',
+      'md': '768px'
+    },
     extend: {
       width: {
         '345': '345px',
@@ -12,14 +17,15 @@ export default {
         '125': '125px'
       },
       height: {
-        '125': '125px'
+        '125': '125px',
+        '480': '30rem'
       },
       fontSize: {
         '32': '32px'
       },
       spacing: {
         '21.440': '21.440px',
-        '10': '10px'
+        '10-custom': '10px'
       },
       minHeight: {
         '680': '680px'
@@ -50,10 +56,27 @@ export default {
           height:'125px',
           backgroundColor: '#02ccba'
           }
-        }
+        },
+        smallFlip: {
+          '0%': { 
+            width: '100%',
+            height: '100%' 
+          },
+          '50%': { 
+            width: '120%',
+            height: '120%' 
+          },
+          '100%': { 
+            width:'100%',
+            height:'100%',
+            backgroundColor: '#02ccba'
+            }
+          }
+
       },
       animation: {
-        flip: 'flip 1s'
+        flip: 'flip 1s',
+        smallFlip: 'smallFlip 1s'
       }
     },
   },
